@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  indicator-service:
+    build: .
+    ports:
+      - "8000:8000"  # REST API
+      - "50051:50051"  # gRPC
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  indicator-service-dev:
+    build: .
+    ports:
+      - "8001:8000"  # REST API (alt port)
+      - "50052:50051"  # gRPC (alt port)
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app  # Mount source for development
+      - ./logs:/app/logs
+    profiles:
+      - dev
+    command: ["sh", "-c", "python main.py & python grpc_server.py"]
