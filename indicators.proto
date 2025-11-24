@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package indicators;
+
+service IndicatorService {
+  rpc CalculateIndicators(CalculateRequest) returns (CalculateResponse);
+  rpc GetCachedIndicator(CacheRequest) returns (CacheResponse);
+  rpc ListIndicators(ListRequest) returns (ListResponse);
+}
+
+message CalculateRequest {
+  repeated double high = 1;
+  repeated double low = 2;
+  repeated double close = 3;
+  repeated double volume = 4;
+  repeated string indicators = 5;
+}
+
+message CalculateResponse {
+  bool success = 1;
+  IndicatorData data = 2;
+  ResponseMetadata metadata = 3;
+}
+
+message IndicatorData {
+  map<string, IndicatorResult> indicators = 1;
+  CompositeSignals composite_signals = 2;
+  int32 input_length = 3;
+}
+
+message IndicatorResult {
+  repeated double oscillator = 1;
+  repeated double signal = 2;
+  repeated double upper_band = 3;
+  repeated double lower_band = 4;
+  repeated bool buy_signal = 5;
+  repeated bool sell_signal = 6;
+  repeated bool neutral_signal = 7;
+  
+  // SQZMOM specific
+  repeated double momentum = 8;
+  repeated double histogram = 9;
+  repeated bool squeeze_on = 10;
+  repeated bool squeeze_off = 11;
+  repeated double bb_upper = 12;
+  repeated double bb_lower = 13;
+  repeated double kc_upper = 14;
+  repeated double kc_lower = 15;
+  
+  // STAI specific
+  repeated double stai_score = 16;
+  repeated double macd = 17;
+  repeated double rsi = 18;
+  repeated double stoch_k = 19;
+  repeated double stoch_d = 20;
+  
+  IndicatorMetadata metadata = 21;
+}
+
+message IndicatorMetadata {
+  string indicator = 1;
+  map<string, string> parameters = 2;
+}
+
+message CompositeSignals {
+  repeated bool buy_signal = 1;
+  repeated bool sell_signal = 2;
+  repeated bool neutral_signal = 3;
+  string methodology = 4;
+}
+
+message ResponseMetadata {
+  repeated string indicators_calculated = 1;
+  string last_updated = 2;
+  bool error = 3;
+  string error_message = 4;
+}
+
+message CacheRequest {
+  string indicator = 1;
+}
+
+message CacheResponse {
+  bool success = 1;
+  CacheData data = 2;
+}
+
+message CacheData {
+  string timestamp = 1;
+  int32 data_length = 2;
+  map<string, CachedValues> last_values = 3;
+}
+
+message CachedValues {
+  oneof values {
+    DoubleArray double_array = 1;
+    BoolArray bool_array = 2;
+    double single_double = 3;
+    bool single_bool = 4;
+  }
+}
+
+message DoubleArray {
+  repeated double values = 1;
+}
+
+message BoolArray {
+  repeated bool values = 1;
+}
+
+message ListRequest {}
+
+message ListResponse {
+  map<string, IndicatorInfo> indicators = 1;
+}
+
+message IndicatorInfo {
+  string name = 1;
+  string description = 2;
+  map<string, ParameterInfo> parameters = 3;
+  repeated string inputs = 4;
+  repeated string outputs = 5;
+}
+
+message ParameterInfo {
+  string default_value = 1;
+  string type = 2;
+  string description = 3;
+}
