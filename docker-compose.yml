@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      LOG_LEVEL: debug
+      DATABASE_TYPE: sqlite
+      DATABASE_NAME: crypto_screener.db
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-your-32-byte-encryption-key-change-me}
+      BINANCE_USE_TESTNET: 'true'
+      MAX_POSITION_SIZE: 10000
+      MAX_DRAWDOWN_PERCENT: 20
+      STOP_LOSS_PERCENT: 5
+      TAKE_PROFIT_PERCENT: 10
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    command: npm run start:dev
+    networks:
+      - crypto-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: crypto_screener
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - crypto-network
+
+  indicator-engine:
+    image: python:3.11-slim
+    ports:
+      - '3001:3001'
+    working_dir: /app
+    command: echo "Indicator engine placeholder - implement separately"
+    networks:
+      - crypto-network
+
+volumes:
+  postgres_data:
+
+networks:
+  crypto-network:
+    driver: bridge
