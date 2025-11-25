@@ -38,24 +38,24 @@ class IndicatorService:
             IndicatorResponse with calculated values
         """
         try:
-            # Convert to numpy arrays
-            high = np.array(request.high, dtype=float)
-            low = np.array(request.low, dtype=float)
-            close = np.array(request.close, dtype=float)
-            
+            # Convert to numpy arrays with proper dtype from the start
+            high = np.array(request.high, dtype=np.float64)
+            low = np.array(request.low, dtype=np.float64)
+            close = np.array(request.close, dtype=np.float64)
+
             # Validate input lengths
             if not (len(high) == len(low) == len(close)):
                 raise ValueError("High, low, and close arrays must have same length")
-            
+
             if len(close) == 0:
                 raise ValueError("Empty data provided")
-            
+
             # Check volume for SQZMOM
             volume = None
             if 'sqzmom' in [ind.lower() for ind in request.indicators]:
                 if request.volume is None:
                     raise ValueError("Volume is required for SQZMOM indicator")
-                volume = np.array(request.volume, dtype=float)
+                volume = np.array(request.volume, dtype=np.float64)
                 if len(volume) != len(close):
                     raise ValueError("Volume array must match price arrays length")
             
@@ -161,7 +161,8 @@ class IndicatorService:
                         elif np.isinf(v):
                             clean_array.append(None)
                         else:
-                            clean_array.append(float(v))
+                            # Preserve the original dtype
+                            clean_array.append(v.item() if hasattr(v, 'item') else v)
                     self._latest_cache[indicator]['last_values'][key] = clean_array
                 elif isinstance(value, bool):
                     self._latest_cache[indicator]['last_values'][key] = value
